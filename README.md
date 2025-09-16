@@ -72,7 +72,7 @@ User (Developer)
        ├─ Fork Manager Interface
        └─ Token Deployment Wizard
 
-Back-end (Go API)
+Back-end (Java Spring Boot API)
   ├─ Fork Manager (Anvil Containers)
   ├─ Contract Execution Engine
   ├─ RPC Proxy Layer (Testnet / Fork)
@@ -88,10 +88,19 @@ Blockchain Layer
 
 ```text
 / (repo root)
-├─ testswap-api/           # 后端（Go）
-│  └─ cmd/
-│     └─ testswap.go       # 入口（占位）
-├─ testswap-ui/            # 前端（Next.js，预留）
+├─ testswap-api/                 # 后端（Java / Spring Boot + MyBatis-Plus）
+│  ├─ pom.xml                   # Maven 构建文件
+│  └─ src/
+│     ├─ main/
+│     │  ├─ java/...            # 源码目录（com.testswap.api 等）
+│     │  │  ├─ controller/      # 控制器层（REST API）
+│     │  │  ├─ service/         # 业务层
+│     │  │  ├─ mapper/          # MyBatis-Plus Mapper 接口
+│     │  │  └─ entity/          # 实体（DO/PO）
+│     │  └─ resources/
+│     │     └─ application.yml  # 应用配置（端口、RPC、数据库等）
+│     └─ test/                  # 单元测试（JUnit）
+├─ testswap-ui/                  # 前端（Next.js，预留）
 ├─ README.md
 └─ .idea/                  # IDE 配置
 ```
@@ -100,7 +109,8 @@ Blockchain Layer
 > 当前代码库为结构化初始化阶段，后端/前端实现将逐步补全。以下为建议的环境与启动方式，具体命令会在实现落地后补充。
 
 - 前置要求
-  - Go 1.21+（建议 1.22）
+  - Java 8（JDK 8）
+  - Maven 3.6+
   - Node.js 18+ / pnpm 8+
   - Foundry（含 anvil），或等效本地链
   - 可用的以太坊节点服务（Infura/Alchemy/自建 Geth）
@@ -116,28 +126,47 @@ Blockchain Layer
   anvil --fork-url $MAINNET_RPC --fork-block-number 21000000
   ```
 
-- 启动后端（占位说明）
+- 启动后端（Spring Boot，Maven）
   ```bash
   cd testswap-api
-  # go mod init / go mod tidy 之后将提供实际可运行入口
-  # go run ./cmd/testswap.go
+  # 方式一：开发运行
+  SERVER_PORT=8080 mvn spring-boot:run
+
+  # 方式二：构建可执行 JAR 并运行
+  mvn clean package -DskipTests
+  SERVER_PORT=8080 java -jar target/testswap-api-*.jar
   ```
 
 - 启动前端（占位说明）
   ```bash
   cd testswap-ui
-  # pnpm install && pnpm dev （待前端脚手架搭建）
+  npm install
+  npm run dev
   ```
 
 ## 开发与运行
 - 配置
   - 环境变量：RPC_URL、FORK_BLOCK、CHAIN_ID、DATABASE_URL（可选）
   - 针对 Fork 管理：容器化 anvil 实例或进程级管理
+  - 前后端统一配置：
+    - 后端：`SERVER_PORT`（默认 8080）
+    - 前端：`NEXT_PUBLIC_API_BASE`（默认 `http://localhost:8080`）
+  - Spring Boot 常用配置（application.yml 或环境变量）：
+    - `spring.datasource.url` / `spring.datasource.username` / `spring.datasource.password`（可选）
+    - `testswap.rpc.url`（后端访问以太坊节点的 RPC）
+    - `testswap.fork.block`（Fork 基准区块，可选）
+  - MyBatis-Plus 配置（如使用数据库功能）：
+    - `mybatis-plus.mapper-locations: classpath*:/mapper/**/*.xml`（如使用 XML Mapper）
+    - `mybatis-plus.type-aliases-package: com.testswap.api.entity`
+    - `mybatis-plus.configuration.map-underscore-to-camel-case: true`
+  - 兼容性说明：
+    - 建议后端基线为 Spring Boot 2.7.x（兼容 JDK 8）。
+    - 如需升级到 Spring Boot 3.x，需要 Java 17+，届时请同步升级到 JDK 17+ 并适配 Jakarta 命名空间变更。
 - 调试
   - 开启 trace：`debug_traceTransaction`
   - 事务回放：对关键调用打点记录 & 复现
 - 测试
-  - 后端：Go `testing`/`testify`
+  - 后端：Java `JUnit` / `Spring Boot Test`
   - 合约：Foundry `forge test`
   - 前端：Playwright / Vitest（视脚手架而定）
 
@@ -176,7 +205,7 @@ Blockchain Layer
 | 组件 | 技术选型 |
 | --- | --- |
 | 前端 | Next.js + TailwindCSS + Wagmi + Ethers.js |
-| 后端 | Go（Gin/Fiber）+ PostgreSQL（可选） |
+| 后端 | Java + Spring Boot + MyBatis-Plus + PostgreSQL（可选） |
 | 合约 | Solidity + Foundry |
 | Fork 引擎 | Anvil（Foundry 内置） |
 | 区块链服务 | Infura / Alchemy / 自建 Geth |
