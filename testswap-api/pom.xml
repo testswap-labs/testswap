@@ -46,6 +46,13 @@
       <version>${mybatis.plus.version}</version>
     </dependency>
 
+    <!-- OpenAPI / Swagger UI (Spring Boot 2.7.x / Java 8 compatible) -->
+    <dependency>
+      <groupId>org.springdoc</groupId>
+      <artifactId>springdoc-openapi-ui</artifactId>
+      <version>1.7.0</version>
+    </dependency>
+
     <!-- Database driver (optional, uncomment as needed) -->
     <!--
     <dependency>
