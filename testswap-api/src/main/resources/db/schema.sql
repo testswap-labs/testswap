@@ -1,0 +1,11 @@
+-- 数据库 Schema 占位（可选）
+-- 若启用 PostgreSQL，请根据需要调整类型与索引。
+
+-- 示例：Fork 记录（若未来需要持久化）
+-- CREATE TABLE IF NOT EXISTS fork_record (
+--   id UUID PRIMARY KEY,
+--   label VARCHAR(128),
+--   rpc_url TEXT,
+--   base_block BIGINT,
+--   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+-- );
